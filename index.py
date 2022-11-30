@@ -9,23 +9,19 @@ R2 = circuit.R(2, 2, circuit.gnd)
 circuit.R(3, 2, circuit.gnd, Rl)
 simulator = circuit.simulator(temperature=25, nominal_temperature=25)
 
-def simulate(r1: float, r2: float):
-    R1.resistance = r1
-    R2.resistance = r2
-    analysis = simulator.operating_point()
-    V2 = float(analysis['2'])
-    PRl = V2 * V2 / Rl
-    return PRl
+def simulate(rs):
+	R1.resistance = rs[0]
+	R2.resistance = rs[1]
+	analysis = simulator.operating_point()
+	V2 = float(analysis['2'])
+	PRl = V2 * V2 / Rl
+	return PRl
 
 
 # genetic algorithm search for continuous function optimization
 from numpy.random import randint, rand, choice
 from numpy import divide, sum
 from functools import reduce
- 
-# objective function
-def objective(x):
-    return simulate(x[0], x[1])
  
 # decode bitstring to numbers
 def decode(bounds, n_bits, bitstring):
@@ -83,7 +79,7 @@ def mutation(bitstring, r_mut):
 			bitstring[i] = 1 - bitstring[i]
  
 # genetic algorithm
-def genetic_algorithm(objective, bounds, n_bits, target, n_pop, r_cross, r_mut):
+def genetic_algorithm(objective, selection_alg, bounds, n_bits, target, n_pop, r_cross, r_mut):
 	# number of generations needed to find the answer
 	n_iter = 0
 	# history of best scores
@@ -107,7 +103,7 @@ def genetic_algorithm(objective, bounds, n_bits, target, n_pop, r_cross, r_mut):
 			best, best_eval = pop[i], scores[i]
 			print(">%d, new best f(%s) = %f" % (n_iter,  decoded[i], scores[i]))
 		# select parents
-		selected = [roulette_selection(pop, scores) for _ in range(n_pop)]
+		selected = [selection_alg(pop, scores) for _ in range(n_pop)]
 		# create the next generation
 		children = list()
 		for i in range(0, n_pop, 2):
@@ -138,6 +134,9 @@ n_pop = 20
 r_cross = 0.9
 # mutation rate
 r_mut = 1 / (float(n_bits) * len(bounds))
+
 # perform the genetic algorithm search
-decoded, score, history = genetic_algorithm(objective, bounds, n_bits, target, n_pop, r_cross, r_mut)
-print('Done: f(%s) = %f' % (decoded, score))
+def main(selection_alg_name, n_pop, r_cross, r_mut_mul):
+	local_r_mut = r_mut * r_mut_mul
+	selection_alg = tournament_selection if selection_alg_name == 'tournament' else roulette_selection
+	return genetic_algorithm(simulate, selection_alg, bounds, n_bits, target, n_pop, r_cross, local_r_mut)
