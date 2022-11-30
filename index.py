@@ -101,7 +101,7 @@ def genetic_algorithm(objective, selection_alg, bounds, n_bits, target, n_pop, r
 	return [best_decoded, best_eval, scores_history]
 
 # define range for resistor
-r_range = [0, 50]
+r_range = [0, 100]
 # define range for input
 bounds = [r_range, r_range]
 # define the total iterations
