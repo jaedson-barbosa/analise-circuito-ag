@@ -3,6 +3,19 @@ from numpy.random import randint, rand, choice
 from numpy import divide, sum
 from functools import reduce
  
+# define range for resistor
+r_range = [0, 100]
+# define range for input
+bounds = [r_range, r_range]
+# define the total iterations
+target = 1.999
+# bits per variable
+n_bits = 8
+# maximum numer of iterations
+n_iter_max = 25
+# number of simulations
+n_simulations = 5
+
 # decode bitstring to numbers
 def decode(bounds, n_bits, bitstring):
 	decoded = list()
@@ -67,9 +80,10 @@ def genetic_algorithm(objective, selection_alg, bounds, n_bits, target, n_pop, r
 	# initial population of random bitstring
 	pop = [randint(0, 2, n_bits*len(bounds)).tolist() for _ in range(n_pop)]
 	# keep track of best solution
-	best, best_eval = 0, objective(decode(bounds, n_bits, pop[0]))
+	best = pop[0]
+	best_eval = objective(decode(bounds, n_bits, pop[0]))
 	# enumerate generations
-	while best_eval < target:
+	while best_eval < target and n_iter < n_iter_max:
 		n_iter += 1
 		# decode population
 		decoded = [decode(bounds, n_bits, p) for p in pop]
@@ -81,7 +95,6 @@ def genetic_algorithm(objective, selection_alg, bounds, n_bits, target, n_pop, r
 		if scores_best > best_eval:
 			i = scores.index(scores_best)
 			best, best_eval = pop[i], scores[i]
-			print(">%d, new best f(%s) = %f" % (n_iter,  decoded[i], scores[i]))
 		# select parents
 		selected = [selection_alg(pop, scores) for _ in range(n_pop)]
 		# create the next generation
@@ -100,23 +113,12 @@ def genetic_algorithm(objective, selection_alg, bounds, n_bits, target, n_pop, r
 	best_decoded = decode(bounds, n_bits, best)
 	return [best_decoded, best_eval, scores_history]
 
-# define range for resistor
-r_range = [0, 100]
-# define range for input
-bounds = [r_range, r_range]
-# define the total iterations
-target = 1.999
-# bits per variable
-n_bits = 8
-# define the population size
-n_pop = 20
-# crossover rate
-r_cross = 0.9
-# mutation rate
-r_mut = 1 / (float(n_bits) * len(bounds))
-
 # perform the genetic algorithm search
-def main(selection_alg_name, n_pop, r_cross, r_mut_mul):
-	local_r_mut = r_mut * r_mut_mul
+def main(selection_alg_name, n_pop, r_cross, r_mut):
+	r_mut /= float(n_bits) * len(bounds)
 	selection_alg = tournament_selection if selection_alg_name == 'tournament' else roulette_selection
-	return genetic_algorithm(simulate, selection_alg, bounds, n_bits, target, n_pop, r_cross, local_r_mut)
+	results = list()
+	for _ in range(n_simulations):
+		result = genetic_algorithm(simulate, selection_alg, bounds, n_bits, target, n_pop, r_cross, r_mut)
+		results.append(result)
+	return results
