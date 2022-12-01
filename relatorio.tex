@@ -1,0 +1,135 @@
+\documentclass[12pt]{article}
+\usepackage[brazilian]{babel}
+\usepackage[bottom=2.0cm,top=2.0cm,left=2.0cm,right=2.0cm]{geometry}
+%\usepackage{fontspec}
+\usepackage{indentfirst}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{tabularray}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage[oldvoltagedirection,siunitx,american]{circuitikz}
+
+%\AddToHook{cmd/section/before}{\clearpage}
+\setkeys{Gin}{width=\linewidth}
+
+\linespread{1.25}
+\parindent=1.25cm
+
+\renewcommand{\lstlistingname}{Código}
+\renewcommand{\lstlistlistingname}{Lista de códigos}
+\lstset{
+  language=Python,
+  frame=single,
+  framerule=0pt,
+  framextopmargin=3ex,
+  framexbottommargin=3ex,
+  framexleftmargin=1em,
+  xleftmargin={\dimexpr 1em+3pt},
+  breaklines=true,
+}
+
+\hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
+
+\title{Projeto de circuitos elétricos usando algoritmo genético}
+\author{Jaedson Barbosa Serafim}
+\date{\today}
+
+\makeatletter
+\renewcommand*{\fps@figure}{H}
+\renewcommand*{\fps@table}{H}
+\makeatother
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\section{Introdução}
+
+Neste trabalho foi feito o cálculo dos valores de resistências para a máxima transferência de energia para o resistor $R_L$ no circuito \ref{fig:circuito} usando algoritmo genético.
+
+\begin{figure}
+    \centering
+    \begin{circuitikz}
+        \draw (0,0)
+        to[V=$V_{in}$] (0,2)
+        to[R=$R_1$] (2,2)
+        to[R, l_=$R_2$, *-*] (2,0) -- (0,0)
+        (2,2) -- (4,2)
+        to[R=$R_L$] (4,0) -- (2,0)
+        (3, 2) to [open,v=$V_1$] (3, 0);
+    \end{circuitikz}
+    \caption{Circuito em análise.}
+    \label{fig:circuito}
+\end{figure}
+
+A vantagem deste circuito é que, dada a sua simplicidade, é possível facilmente saber qual a resposta para solução do problema. A máxima transferência de energia ocorre quando o resistor $R_1$ é substituído por um curto, que pode ser interpretado como uma resistência muito pequena, enquanto o resistor $R_2$ é substituído por um aberto, interpretável como uma resistência muito grande, obtendo assim o circuito equivalente \ref{fig:circuito-eq}.
+
+\begin{figure}
+    \centering
+    \begin{circuitikz}
+        \draw (0,0)
+        to[V=$V_{in}$] (0,2) -- (2,2)
+        to[R=$R_L$] (2,0) -- (0,0);
+    \end{circuitikz}
+    \caption{Circuito de máxima transferência de energia.}
+    \label{fig:circuito-eq}
+\end{figure}
+
+A potência dissipada pelo resistor $R_L$ no circuito equivalente \ref{fig:circuito-eq} pode ser calculada usando a equação \ref{eq:formula_simplificada}.
+
+\begin{equation}
+    \label{eq:formula_simplificada}
+    P_{max} = \frac{V_{in}^2}{R_L}
+\end{equation}
+
+Substituindo $V_{in}$ por $10V$ e $R_L$ por $50\Omega$ na equação \ref{eq:formula_simplificada} chegamos à máxima potência teórica para  resistência $R_L$ no circuito \ref{fig:circuito}:
+
+\begin{equation}
+    \label{eq:potencia_teorica}
+    P_{max} = \frac{10^2}{50} = 2A
+\end{equation}
+
+% Talvez extender mais um pouco a introdução
+
+\section{Análise da função de potência}
+
+A função da potência de saída do circuito \ref{fig:circuito} pode ser definida como sendo:
+
+\begin{equation}
+    \label{eq:pout}
+    P_{out} = \frac{V_1^2}{R_L}
+\end{equation}
+
+$V_1$ pode ser escrito em função de $V_{in}$ e das resistências:
+
+\begin{equation}
+    \label{eq:v1}
+    \begin{split}
+        V_1 & = V_{in} * \frac{R_2\parallel R_L}{R_1 + R_2\parallel R_L} \\
+        & = V_{in} * \frac{1}{1 + \frac{R1}{R_2\parallel R_L}} \\
+        & = V_{in} * \frac{1}{1 + \frac{R1}{\frac{R_2 * R_L}{R_2 + R_L} }} \\
+        & = V_{in} * \frac{1}{1 + R1 * \frac{R_2 + R_L}{R_2 * R_L} }
+    \end{split}
+\end{equation}
+
+Por fim, a potência de entrada do circuito \ref{fig:circuito} é definida por:
+
+\begin{equation}
+    \label{eq:pin}
+    P_{in} = V_{in} * \frac{V_{in} - V_1}{R_1}
+\end{equation}
+
+Usando as equações \ref{eq:pout}, \ref{eq:v1} e \ref{eq:pin} é possível então calcular a eficiência do circuito, ou seja, a relação entre a potência de saída e a potência de entrada, dada pela fórmula:
+
+\begin{equation}
+    \label{eq:n}
+    \eta = \frac{P_{out}}{P_{in}}
+\end{equation}
+
+
+
+\end{document}
