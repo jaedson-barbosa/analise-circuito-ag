@@ -90,12 +90,15 @@ Substituindo $V_{in}$ por $10V$ e $R_L$ por $50\Omega$ na equação \ref{eq:form
 
 \begin{equation}
     \label{eq:potencia_teorica}
-    P_{max} = \frac{10^2}{50} = 2A
+    P_{max} = \frac{10^2}{50} = 2W
 \end{equation}
 
-% Talvez extender mais um pouco a introdução
+Nessa simplificação da figura \ref{fig:circuito-eq}, como não há outros elementos resistivos no circuito, toda a potência fornecida pela fonte é entregue à resistência, ou seja, o rendimento do circuito é de 100\%.
 
-\section{Análise da função de potência}
+Porém, e se não soubéssemos como fazer tais contas, e se sequer soubéssemos que circuito é esse? Nesse caso poderia ser feita essa busca pelos valores de $R_1$ e $R_2$ usando algoritmos genéticos e esse é o objetivo deste trabalho: projetar elementos de um circuito para atender a uma especificação.
+
+\section{Função de rendimento}
+\label{cap:equacionament}
 
 A função da potência de saída do circuito \ref{fig:circuito} pode ser definida como sendo:
 
@@ -130,6 +133,12 @@ Usando as equações \ref{eq:pout}, \ref{eq:v1} e \ref{eq:pin} é possível ent�
     \eta = \frac{P_{out}}{P_{in}}
 \end{equation}
 
+\section{Análise inicial}
 
+Existem resistores com diversos valores de resistência, mas aqui a busca foi limitada de $1m\Omega$ a $100k\Omega$, que é um intervalo de busca bem abrangente caso fosse usada uma escala linear, por isso foi adotada uma escala logarítmica, para reduzir o intervalo de busca para $\left[-2,5\right]$.
+
+
+
+Usando como base as fórmulas do capítulo \ref{cap:equacionament} foi escrito o código .
 
 \end{document}
