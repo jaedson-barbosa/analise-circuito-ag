@@ -5,28 +5,28 @@ from statistics import mean
 
 r_cross_opts = (0.6, 0.7, 0.8, 0.9, 1)
 r_mut_opts = (0, 0.25, 0.5, 0.75, 1)
-results_pop_10_roulette = list()
-results_pop_10_tournament = list()
-results_pop_20_roulette = list()
-results_pop_20_tournament = list()
+results_pop_4_roulette = list()
+results_pop_4_tournament = list()
+results_pop_8_roulette = list()
+results_pop_8_tournament = list()
 
 for r_cross in r_cross_opts:
-  row_results_pop_10_roulette = list()
-  row_results_pop_10_tournament = list()
-  row_results_pop_20_roulette = list()
-  row_results_pop_20_tournament = list()
+  row_results_pop_4_roulette = list()
+  row_results_pop_4_tournament = list()
+  row_results_pop_8_roulette = list()
+  row_results_pop_8_tournament = list()
 
   for r_mut in r_mut_opts:
     print((r_cross, r_mut))
-    row_results_pop_10_roulette.append(main('roulette', 10, r_cross, r_mut))
-    row_results_pop_10_tournament.append(main('tournament', 10, r_cross, r_mut))
-    row_results_pop_20_roulette.append(main('roulette', 20, r_cross, r_mut))
-    row_results_pop_20_tournament.append(main('tournament', 20, r_cross, r_mut))
+    row_results_pop_4_roulette.append(main('roulette', 4, r_cross, r_mut))
+    row_results_pop_4_tournament.append(main('tournament', 4, r_cross, r_mut))
+    row_results_pop_8_roulette.append(main('roulette', 8, r_cross, r_mut))
+    row_results_pop_8_tournament.append(main('tournament', 8, r_cross, r_mut))
 
-  results_pop_10_roulette.append(row_results_pop_10_roulette)
-  results_pop_10_tournament.append(row_results_pop_10_tournament)
-  results_pop_20_roulette.append(row_results_pop_20_roulette)
-  results_pop_20_tournament.append(row_results_pop_20_tournament)
+  results_pop_4_roulette.append(row_results_pop_4_roulette)
+  results_pop_4_tournament.append(row_results_pop_4_tournament)
+  results_pop_8_roulette.append(row_results_pop_8_roulette)
+  results_pop_8_tournament.append(row_results_pop_8_tournament)
 
 X, Y = np.meshgrid(r_mut_opts, r_cross_opts)
 
@@ -38,25 +38,25 @@ def plot_colormesh(name, func, vmax = 25):
   fig.set_figheight(12)
 
   meshopts = {'cmap': 'coolwarm', 'vmin': 0, 'vmax': vmax}
-  surf = ax[0][0].pcolormesh(X, Y, calc_z(results_pop_10_roulette), **meshopts)
+  surf = ax[0][0].pcolormesh(X, Y, calc_z(results_pop_4_roulette), **meshopts)
   ax[0][0].set_xlabel('mutation rate')
   ax[0][0].set_ylabel('crossover rate')
-  ax[0][0].set_title('Population=10 (Roulette)')
+  ax[0][0].set_title('Population=4 (Roulette)')
 
-  surf = ax[0][1].pcolormesh(X, Y, calc_z(results_pop_10_tournament), **meshopts)
+  surf = ax[0][1].pcolormesh(X, Y, calc_z(results_pop_4_tournament), **meshopts)
   ax[0][1].set_xlabel('mutation rate')
   ax[0][1].set_ylabel('crossover rate')
-  ax[0][1].set_title('Population=10 (Tournament)')
+  ax[0][1].set_title('Population=4 (Tournament)')
 
-  surf = ax[1][0].pcolormesh(X, Y, calc_z(results_pop_20_roulette), **meshopts)
+  surf = ax[1][0].pcolormesh(X, Y, calc_z(results_pop_8_roulette), **meshopts)
   ax[1][0].set_xlabel('mutation rate')
   ax[1][0].set_ylabel('crossover rate')
-  ax[1][0].set_title('Population=20 (Roulette)')
+  ax[1][0].set_title('Population=8 (Roulette)')
 
-  surf = ax[1][1].pcolormesh(X, Y, calc_z(results_pop_20_tournament), **meshopts)
+  surf = ax[1][1].pcolormesh(X, Y, calc_z(results_pop_8_tournament), **meshopts)
   ax[1][1].set_xlabel('mutation rate')
   ax[1][1].set_ylabel('crossover rate')
-  ax[1][1].set_title('Population=20 (Tournament)')
+  ax[1][1].set_title('Population=8 (Tournament)')
 
   fig.colorbar(surf, ax=ax, orientation='horizontal', pad=0.07)
   plt.savefig(f'fig/{name}.png')
@@ -71,8 +71,8 @@ quant_normal = 0
 quant_primeira = 0
 quant_nunca = 0
 
-for result in (results_pop_10_roulette, results_pop_10_tournament, results_pop_20_roulette, results_pop_20_tournament):
-  for row in results_pop_10_tournament:
+for result in (results_pop_4_roulette, results_pop_4_tournament, results_pop_8_roulette, results_pop_8_tournament):
+  for row in result:
     for col in row:
       for sim_result in col:
         scores_history = sim_result[2][0:25]
@@ -88,6 +88,6 @@ for result in (results_pop_10_roulette, results_pop_10_tournament, results_pop_2
         quant_normal += 1
 plt.xlabel('Number of generations')
 plt.ylabel('Delivered power')
+plt.xscale('log')
 plt.savefig('fig/generations.png')
-
 print(quant_normal, quant_primeira, quant_nunca)
