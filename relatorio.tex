@@ -9,10 +9,12 @@
 \usepackage{tabularray}
 \usepackage{float}
 \usepackage{amsmath}
+\usepackage[alf]{abntex2cite}
+\usepackage{quoting}
 \usepackage[oldvoltagedirection,siunitx,american]{circuitikz}
 
 %\AddToHook{cmd/section/before}{\clearpage}
-\setkeys{Gin}{width=\linewidth}
+\setkeys{Gin}{width=0.75\linewidth}
 
 \linespread{1.25}
 \parindent=1.25cm
@@ -35,11 +37,6 @@
 \title{Projeto de circuitos elétricos usando algoritmo genético}
 \author{Jaedson Barbosa Serafim}
 \date{\today}
-
-\makeatletter
-\renewcommand*{\fps@figure}{H}
-\renewcommand*{\fps@table}{H}
-\makeatother
 
 \begin{document}
 
@@ -137,8 +134,89 @@ Usando as equações \ref{eq:pout}, \ref{eq:v1} e \ref{eq:pin} é possível ent�
 
 Existem resistores com diversos valores de resistência, mas aqui a busca foi limitada de $1m\Omega$ a $100k\Omega$, que é um intervalo de busca bem abrangente caso fosse usada uma escala linear, por isso foi adotada uma escala logarítmica, para reduzir o intervalo de busca para $\left[-2,5\right]$.
 
+\lstinputlisting[label=code:preanalise, caption={Análise inicial do problema.}]{pre_analysis.py}
+
+Usando como base as fórmulas do capítulo \ref{cap:equacionament} foi escrito o código \ref{code:preanalise}, responsável por plotar algumas figuras que nos ajudam a entender melhor o problema.
+
+\begin{figure}
+    \centering
+    \includegraphics{fig/surface.png}
+    \caption{Eficiência em função de $R_1$ e $R_2$.}
+    \label{fig:ef}
+\end{figure}
+
+A figura \ref{fig:ef} demonstra que não existem máximos locais na função avaliada, apenas um máximo global, o que facilita a sua busca, embora este esteja nos extremos do domínio da busca, o que dificulta sua descoberta, ou seja, é bem difícil chegar ao ponto exato de máximo global, mas é fácil chegar próximo dele.
+
+\begin{figure}
+    \centering
+    \includegraphics{fig/efficiency_vs_r1.png}
+    \caption{Curvas de eficiência em função de $R_1$ para 3 valores distintos de $R_2$.}
+    \label{fig:efr1}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics{fig/efficiency_vs_r2.png}
+    \caption{Curvas de eficiência em função de $R_2$ para 3 valores distintos de $R_1$.}
+    \label{fig:efr2}
+\end{figure}
+
+As figuras \ref{fig:efr1} e \ref{fig:efr2} foram plotadas com o eixo \textit{X} em escala logarítmica e assim a curva exibida tornou-se "legível", comprovando que a melhor forma de buscar os melhores valores de $R_1$ e $R_2$ é analisando em potências de 10.
+
+Em relação à quantidade de bits, foi adotado apenas 8 bits e sua escolha foi puramente arbitrária, ela ocorreu devido a 1 byte ter 8 bits e assim, caso este problema estivesse sendo desenvolvido em alguma linguagem com tipagem estática poderia ser usado um número de tipo char (para C) ou u8 (para Rust).
+
+Caso 8 bits pareçam pouco, vale mencionar que as figuras \ref{fig:efr1} e \ref{fig:efr2} foram geradas usando apenas os pontos representáveis por 8 bits, ou seja, usando apenas 255 pontos, como pode ser visto no código \ref{code:preanalise}.
+
+\section{Função de \textit{fitness}}
+
+\lstinputlisting[label=code:simulacao, caption={Simulação do circuito usando PySpice.}]{simulation.py}
+
+Muitas vezes é necessário usar ferramentas externas para a solução de um problema e aqui não é diferente, por isso a biblioteca PySpice é importada na primeira linha do código \ref{code:simulacao}, para simular o circuito e assim obtermos o valor da tensão $V_1$, usada para calcular as potências e assim conseguirmos o rendimento do circuito. "Por baixo dos panos", o que esta biblioteca faz é passar os parâmetros para outro programa, o Ngspice, e interpreta suas respostas.
+
+\section{Algoritmo genético}
+
+\subsection{Implementação}
+
+\lstinputlisting[label=code:ag, caption={Algoritmo genético com codificação binária.}]{index.py}
+
+O algoritmo genético desenvolvido neste trabalho é na verdade um aprimoramento do criado por \citeonline{brownlee_simple_2021}, que embora funcionasse razoavelmente bem, não atendia a todas as solicitações deste projeto. Seguindo a ordem cronológica do projeto, as principais melhorias implementadas estão logo abaixo descritas.
+
+\begin{enumerate}
+    \item Correção da variável \textit{largest} da função \textit{decode} pois, para uma quantidade de $n$ bits, o maior valor possível não é $2^n$, mas sim $2^n-1$.
+    \item Adicionada seleção pelo método da roleta, que pode ser escolhida passando-a como sendo o parâmetro \textit{selection\_alg} da função \textit{genetic\_algorithm}, tarefa desempenhada pela função \textit{main}, que a escolhe caso tenha sido chamada com seu parâmetro \textit{selection\_alg\_name} igual a \textit{roulette}\footnote{Na verdade, qualquer valor passado diferente de \textit{tournament} acarretará no uso da seleção pelo método da roleta, pois não foi implementada nenhuma lógica de validação de parâmetros}.
+    \item Adicionado histórico de melhor \textit{fitness} de cada geração.
+    \item Substituída quantidade fixa de gerações por comparação de \textit{fitness} com valor alvo, ou seja, ao invés de sempre executar a mesma quantidade de gerações, agora o algoritmo é interrompido tão logo a função de \textit{fitness} de qualquer indivíduo da população retorne um valor igual ou maior ao alvo definido anteriormente.
+    \item Corrigido erro com a variável \textit{best} na função \textit{genetic\_algorithm} que ocorria quando o primeiro indivíduo da população inicial atendia ao critério de parada, pois seu valor inicial era igual a 0, ou seja, de tipo inteiro, enquanto a função de decodificação na penúltima linha da função esperava um vetor de bits. A solução foi simples, bastou substituir o 0 pelo primeiro indivíduo da população. Cabe ressaltar que este erro só ocorria por causa da alteração do critério de parada.
+    \item Adicionado novo critério de parada: o número de iterações agora precisa ser inferior a um valor limite. Esse critério é importante pois quando são feitos testes com taxa de mutação igual a zero é possível que o algoritmo genético jamais chegue a uma solução, daí a razão de fazer essa limitação.
+\end{enumerate}
+
+\subsection{Especificações}
+
+Esse código tem implementada a forma mais simples de algoritmo genético, sempre priorizando a aleatoriedade do processo e a simplicidade do algoritmo, assim alguns parâmetros são fixos em todos as execuções deste algoritmo a partir da função \textit{main}, são eles:
+
+\begin{itemize}
+    \item intervalo de valores (\textit{r\_range}) igual a $\left[-2,5\right]$;
+    \item alvo (\textit{target}) igual a $0,99$, ou seja, 99\% da energia fornecida pela fonte é dissipada na resistência $R_L$;
+    \item codificação binária da população usando 8 bits para representar cada variável em análise, totalizando 16 bits por indivíduo dado que são 2 variáveis;
+    \item simulação limitada a 25 iterações; e
+    \item 5 simulações por chamada da função \textit{main}, garantindo resultados mais precisos.
+\end{itemize}
+
+\begin{quoting}[rightmargin=0cm,leftmargin=4cm]
+\begin{singlespace}
+{\footnotesize 
+O AG básico descarta a geração anterior e considera para a futura apenas os descendentes obtidos. A técnica Elitista consiste em reintroduzir o indivíduo melhor avaliado de uma geração para a seguinte, evitando a perda de informações importantes presentes em indivíduos de alta avaliação e que podem ser perdidas durante os processos de seleção e cruzamento. Algumas técnicas controlam o número de vezes que o indivíduo pode ser reintroduzindo, o que contribui para evitar convergência a máximos locais. \cite[p. 6]{bento_algoritmos_2008}
+}
+\end{singlespace}
+\end{quoting}
+
+Apesar do operador de elitismo muitas vezes contribuir para uma maior velocidade de convergência, ele cria alguns problemas como a maior probabilidade de estagnação em um máximo local, como pôde ser percebido no último trabalho, além de também acrescentar uma nova camada de complexidade à solução e dificultar o seu processamento em paralelo para conjuntos de dados muito extensos. Além de que, uma menor taxa de cruzamento aumenta a probabilidade dos bons indivíduos continuarem dentre a população e a correta escolha desse parâmetro faz com que o algoritmo não seja tão penalizado pela ausência do operador de elitismo. Em outras palavras, a taxa de elitismo é igual a zero em todas as execuções.
+
+\section{Simulações}
 
 
-Usando como base as fórmulas do capítulo \ref{cap:equacionament} foi escrito o código .
+
+\clearpage
+\bibliography{citations}
 
 \end{document}
