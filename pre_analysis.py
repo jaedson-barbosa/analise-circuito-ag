@@ -11,8 +11,8 @@ def calc_efficiency(R1, R2):
   return Pout / Pin
 
 def plot_surface():
-  R1 = np.logspace(-2, 2, num=1000)
-  R2 = np.logspace(-2, 2, num=1000)
+  R1 = np.logspace(-2, 2, num=255)
+  R2 = np.logspace(-2, 2, num=255)
   ax = plt.figure().add_subplot(projection='3d')
   R1, R2 = np.meshgrid(R1, R2)
   surf = ax.plot_surface(R1, R2, calc_efficiency(R1, R2), cmap=cm.coolwarm)
@@ -22,7 +22,7 @@ def plot_surface():
   plt.savefig('fig/surface.png')
 
 def plot_efficiency_vs_r1():
-  R1 = np.logspace(-2, 5, num=1000)
+  R1 = np.logspace(-2, 5, num=255)
   plt.figure()
   plt.plot(R1, calc_efficiency(R1, 100_000), label="100kΩ")
   plt.plot(R1, calc_efficiency(R1, 1_000), label="1kΩ")
@@ -34,7 +34,7 @@ def plot_efficiency_vs_r1():
   plt.savefig('fig/efficiency_vs_r1.png')
 
 def plot_efficiency_vs_r2():
-  R2 = np.logspace(-2, 5, num=1000)
+  R2 = np.logspace(-2, 5, num=255)
   plt.figure()
   plt.plot(R2, calc_efficiency(100_000, R2), label="100kΩ")
   plt.plot(R2, calc_efficiency(1_000, R2), label="1kΩ")

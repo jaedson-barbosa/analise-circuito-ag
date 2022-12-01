@@ -81,7 +81,6 @@ for result in (results_pop_10_roulette, results_pop_10_tournament, results_pop_2
           continue
         if sim_result[1] < 0.99:
           quant_nunca += 1
-          continue
         if len(scores_history) < 25:
           last_score = scores_history[len(scores_history) - 1]
           scores_history += [last_score] * (25 - len(scores_history))

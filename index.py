@@ -4,7 +4,7 @@ from numpy import divide, sum
 from functools import reduce
  
 # define range for resistor
-r_range = [0.01, 100_000]
+r_range = [-2, 5]
 # define range for input
 bounds = [r_range, r_range]
 # define the total iterations

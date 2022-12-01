@@ -10,9 +10,10 @@ circuit.R(3, 2, circuit.gnd, Rl)
 simulator = circuit.simulator(temperature=25, nominal_temperature=25)
 
 def simulate(rs):
-	r1 = rs[0]
+	r1 = 10**rs[0]
+	r2 = 10**rs[1]
 	R1.resistance = r1
-	R2.resistance = rs[1]
+	R2.resistance = r2
 	analysis = simulator.operating_point()
 	V1 = float(analysis['2'])
 	Pout = V1 * V1 / Rl
