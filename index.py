@@ -4,11 +4,11 @@ from numpy import divide, sum
 from functools import reduce
  
 # define range for resistor
-r_range = [0, 100]
+r_range = [0.01, 100_000]
 # define range for input
 bounds = [r_range, r_range]
 # define the total iterations
-target = 1.999
+target = 0.99
 # bits per variable
 n_bits = 8
 # maximum numer of iterations

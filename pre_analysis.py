@@ -22,9 +22,9 @@ def plot_surface():
   plt.savefig('fig/surface.png')
 
 def plot_efficiency_vs_r1():
-  R1 = np.logspace(-2, 6, num=1000)
+  R1 = np.logspace(-2, 5, num=1000)
   plt.figure()
-  plt.plot(R1, calc_efficiency(R1, 1_000_000), label="1MΩ")
+  plt.plot(R1, calc_efficiency(R1, 100_000), label="100kΩ")
   plt.plot(R1, calc_efficiency(R1, 1_000), label="1kΩ")
   plt.plot(R1, calc_efficiency(R1, 1), label="1Ω")
   plt.legend(title='R2 values')
@@ -34,9 +34,9 @@ def plot_efficiency_vs_r1():
   plt.savefig('fig/efficiency_vs_r1.png')
 
 def plot_efficiency_vs_r2():
-  R2 = np.logspace(-2, 6, num=1000)
+  R2 = np.logspace(-2, 5, num=1000)
   plt.figure()
-  plt.plot(R2, calc_efficiency(1_000_000, R2), label="1MΩ")
+  plt.plot(R2, calc_efficiency(100_000, R2), label="100kΩ")
   plt.plot(R2, calc_efficiency(1_000, R2), label="1kΩ")
   plt.plot(R2, calc_efficiency(1, R2), label="1Ω")
   plt.legend(title='R1 values')
