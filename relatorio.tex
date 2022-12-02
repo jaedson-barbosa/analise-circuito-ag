@@ -198,8 +198,9 @@ Esse código tem implementada a forma mais simples de algoritmo genético, sempr
     \item intervalo de valores (\textit{r\_range}) igual a $\left[-2,5\right]$;
     \item alvo (\textit{target}) igual a $0,99$, ou seja, 99\% da energia fornecida pela fonte é dissipada na resistência $R_L$;
     \item codificação binária da população usando 8 bits para representar cada variável em análise, totalizando 16 bits por indivíduo dado que são 2 variáveis;
-    \item simulação limitada a 25 iterações; e
-    \item 5 simulações por chamada da função \textit{main}, garantindo resultados mais precisos.
+    \item simulação limitada a 25 iterações;
+    \item 5 simulações por chamada da função \textit{main}, garantindo resultados mais precisos; e
+    \item taxa de mutação dividida pela quantidade de bits de cada indivíduo, assim o valor enviado à função é referente à probabilidade de algum indivíduo ter uma mutação em algum bit.
 \end{itemize}
 
 \begin{quoting}[rightmargin=0cm,leftmargin=4cm]
@@ -214,7 +215,9 @@ Apesar do operador de elitismo muitas vezes contribuir para uma maior velocidade
 
 \section{Simulações}
 
+\lstinputlisting[label=code:final, caption={Simulações e plotagem de gráficos.}]{sim_and_plots.py}
 
+Resumidamente, o código \ref{code:final} chama a função \textit{main} com 5 diferentes taxas de cruzamento, definidas na variável \textit{r\_cross\_opts}, e 5 diferentes taxas de mutação, armazenadas em \textit{r\_mut\_opts}
 
 \clearpage
 \bibliography{citations}
