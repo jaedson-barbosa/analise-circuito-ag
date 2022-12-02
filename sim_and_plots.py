@@ -4,7 +4,7 @@ import numpy as np
 from statistics import mean
 
 r_cross_opts = (0.6, 0.7, 0.8, 0.9, 1)
-r_mut_opts = (0, 0.25, 0.5, 0.75, 1)
+r_mut_opts = (0.5, 1, 1.5, 2)
 results_pop_4_roulette = list()
 results_pop_4_tournament = list()
 results_pop_8_roulette = list()
@@ -34,7 +34,7 @@ def plot_colormesh(name, func, vmax = 25):
   calc_z = lambda results: np.array([[func([len(sim_result[2]) for sim_result in col]) for col in row] for row in results])
   fig, ax = plt.subplots(2, 2, sharex=True, sharey=True)
 
-  fig.set_figwidth(10)
+  fig.set_figwidth(8)
   fig.set_figheight(12)
 
   meshopts = {'cmap': 'coolwarm', 'vmin': 0, 'vmax': vmax}
