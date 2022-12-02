@@ -44,6 +44,7 @@
 
 \tableofcontents
 
+\clearpage
 \section{Introdução}
 
 Neste trabalho foi feito o cálculo dos valores de resistências para a máxima transferência de energia para o resistor $R_L$ no circuito \ref{fig:circuito} usando algoritmo genético.
@@ -200,7 +201,7 @@ Esse código tem implementada a forma mais simples de algoritmo genético, sempr
     \item codificação binária da população usando 8 bits para representar cada variável em análise, totalizando 16 bits por indivíduo dado que são 2 variáveis;
     \item simulação limitada a 25 iterações;
     \item 5 simulações por chamada da função \textit{main}, garantindo resultados mais precisos; e
-    \item taxa de mutação dividida pela quantidade de bits de cada indivíduo, assim o valor enviado à função é referente à probabilidade de algum indivíduo ter uma mutação em algum bit.
+    \item taxa de mutação dividida pela quantidade de bits de cada indivíduo, assim o valor enviado à função é referente à probabilidade de um indivíduo ter uma mutação em algum bit.
 \end{itemize}
 
 \begin{quoting}[rightmargin=0cm,leftmargin=4cm]
@@ -217,7 +218,66 @@ Apesar do operador de elitismo muitas vezes contribuir para uma maior velocidade
 
 \lstinputlisting[label=code:final, caption={Simulações e plotagem de gráficos.}]{sim_and_plots.py}
 
-Resumidamente, o código \ref{code:final} chama a função \textit{main} com 5 diferentes taxas de cruzamento, definidas na variável \textit{r\_cross\_opts}, e 5 diferentes taxas de mutação, armazenadas em \textit{r\_mut\_opts}
+Resumidamente, o código \ref{code:final} chama a função \textit{main} com 5 diferentes taxas de cruzamento, definidas na variável \textit{r\_cross\_opts}, e 4 diferentes taxas de mutação, armazenadas em \textit{r\_mut\_opts}, e armazena os resultados em 4 diferentes vetores, cada um com um tipo de seleção e um tamanho populacional diferente. Por fim, esses resultados são plotados nos gráficos exibidos no próximo capítulo.
+
+\section{Resultados}
+
+Com apenas 2 minutos de processamento foi possível chegar aos resultados que serão discutidos neste capítulo. Começamos com  a figura \ref{fig:fitgeral}, ela mostra o nível extremo de aleatoriedade deste algoritmo e sua incrível capacidade de quase sempre convergir ao ponto correto em poucas iterações. As poucas população que não o fizeram, só não conseguiram por causa do limite imposto de apenas 25 iterações, mas é interessante notar que todas estavam muito próximas de chegar ao resultado final.
+
+\begin{figure}
+    \centering
+    \includegraphics{fig/generations.png}
+    \caption{Melhores \textit{fitness} de 400 simulações aleatórias diferentes com diferentes parâmetros.}
+    \label{fig:fitgeral}
+\end{figure}
+
+A quantidade de simulações é igual ao produtório do número de:
+
+\begin{itemize}
+    \item simulações para cada chamada da função \textit{main}: 5;
+    \item taxas de mutação: 4, são elas: 50\%, 100\%, 150\%, 200\% por indivíduo ou respectivamente 3,125\%, 6,25\%, 9,375\% e 12,5\% por bit;
+    \item taxas de cruzamento: 5, são elas: 60\%, 70\%, 80\%, 90\% e 100\%; e
+    \item conjuntos de teste: 4, são eles: população de 4 indivíduos com seleção de roleta, população de 4 indivíduos com seleção de torneio, população de 8 indivíduos com seleção de roleta e população de 8 indivíduos com seleção de torneio.
+\end{itemize}
+
+Daí vem a quantidade de 400 simulações, das quais 389 convergiram, ou seja, é uma taxa de sucesso de 97,25\%, mesmo com a extrema limitação de apenas 25 gerações.
+
+\begin{figure}
+    \centering
+    \includegraphics{fig/max_colors.png}
+    \caption{Quantidade máxima de gerações para convergir em cada uma dos 4 diferentes conjuntos de teste.}
+    \label{fig:max}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics{fig/min_colors.png}
+    \caption{Quantidade mínima de gerações para convergir em cada uma dos 4 diferentes conjuntos de teste.}
+    \label{fig:min}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics{fig/mean_colors.png}
+    \caption{Quantidade média de gerações para convergir em cada uma dos 4 diferentes conjuntos de teste.}
+    \label{fig:mean}
+\end{figure}
+
+Na figura \ref{fig:max} é possível visualizarmos o pior resultado das 5 simulações para diferentes tamanhos de população, taxas de cruzamento e mutação com cada um dos métodos de seleção. Dele podemos extrair algumas conclusões:
+
+\begin{itemize}
+    \item a mais óbvia é que uma maior população permite uma convergência mais rápida, afinal existem mais possibilidades de encontrar uma solução se a quantidade de testes é maior;
+    \item taxas de cruzamento mais baixas levaram à convergência mais rápida na população de 8 indivíduos enquanto ocorre o contrário na população de 4 indivíduos, provavelmente devido à eliminação de indivíduos com bom \textit{fitting}; e
+    \item no geral, ambas formas de seleção produzem resultados consistentes, porém a vantagem de performance da seleção por torneio é um bom ponto a se levar em consideração na hora de escolher entre um e outro.
+\end{itemize}
+
+Na figura \ref{fig:min} é possível tirar a conclusão de que com qualquer um dos parâmetros adotados é possível chegar a um resultado satisfatório dependendo da sorte de ter uma boa população inicial.
+
+Por fim, na figura \ref{fig:mean} é possível confirmar o que a figura \ref{fig:fitgeral} já dava indícios: no geral foram necessários menos de 5 iterações para se chegar ao resultado esperado, ou seja, quase sempre com menos de 30 simulações foi possível chegar a um resultado que necessitaria milhares de simulações, mais de 65 mil, caso todos os valores possíveis fossem ser analisados por meio da força bruta, ou seja, uma redução média de 99,95\% na quantidade de simulações necessárias para chegar à solução ótima.
+
+\section{Conclusão}
+
+Embora o problema a ser resolvido tenha sido relativamente simples, com ele foi possível aprender um pouco mais sobre como algoritmos genéticos podem ser usados para resolver problemas de engenharia de forma eficiente.
 
 \clearpage
 \bibliography{citations}
