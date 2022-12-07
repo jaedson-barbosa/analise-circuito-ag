@@ -1,124 +1,57 @@
 from simulation import simulate
-from numpy.random import randint, rand, choice
-from numpy import divide, sum
-from functools import reduce
+from numpy.random import randint, rand, choice, randn
+from numpy import divide, sum, clip
  
-# define range for resistor
 r_range = [-2, 5]
-# define range for input
 bounds = [r_range, r_range]
-# define the total iterations
 target = 0.99
-# bits per variable
-n_bits = 8
-# maximum numer of iterations
-n_iter_max = 25
-# number of simulations
-n_simulations = 5
-
-# decode bitstring to numbers
-def decode(bounds, n_bits, bitstring):
-	decoded = list()
-	largest = 2**n_bits-1
-	for i in range(len(bounds)):
-		# extract the substring
-		start, end = i * n_bits, (i + 1) * n_bits
-		# convert bitarray to integer
-		integer = reduce(lambda a, b: a * 2 + b, bitstring[start:end])
-		# scale integer to desired range
-		value = bounds[i][0] + (integer/largest) * (bounds[i][1] - bounds[i][0])
-		# store
-		decoded.append(value)
-	return decoded
+n_iter_max = 50
+n_simulations = 2
  
-# tournament selection
 def tournament_selection(pop, scores):
-	# first random selection
-	selection_ix = randint(len(pop))
-	for ix in randint(0, len(pop), 2):
-		# check if better (e.g. perform a tournament)
-		if scores[ix] > scores[selection_ix]:
-			selection_ix = ix
-	return pop[selection_ix]
+	ia, ib = randint(len(pop), size=2)
+	return pop[ia] if scores[ia] > scores[ib] else pop[ib]
 
-# roulette selection
 def roulette_selection(pop, scores):
-	# first normalize scores
-	scores = divide(scores, sum(scores))
-	# then choose a random index based on the probability vector
-	selection_ix = choice(len(pop), p=scores)
-	# finally returns the element from that index
-	return pop[selection_ix]
+	return pop[choice(len(pop), p=divide(scores, sum(scores)))]
  
-# crossover two parents to create two children
 def crossover(p1, p2, r_cross):
-	# children are copies of parents by default
 	c1, c2 = p1.copy(), p2.copy()
-	# check for recombination
-	if rand() < r_cross:
-		# select crossover point that is not on the end of the string
-		pt = randint(1, len(p1)-2)
-		# perform crossover
-		c1 = p1[:pt] + p2[pt:]
-		c2 = p2[:pt] + p1[pt:]
+	for i in range(len(c1)):
+		if rand() < r_cross:
+			alpha = rand()
+			c1[i] = p1[i] * alpha + p2[i] * (1 - alpha)
+			c2[i] = p1[i] * (1 - alpha) + p2[i] * alpha
 	return [c1, c2]
  
-# mutation operator
-def mutation(bitstring, r_mut):
-	for i in range(len(bitstring)):
-		# check for a mutation
+def mutation(number, r_mut, bounds):
+	for i in range(len(number)):
 		if rand() < r_mut:
-			# flip the bit
-			bitstring[i] = 1 - bitstring[i]
+			number[i] = clip(number[i] + randn(), a_min=bounds[i][0], a_max=bounds[i][1])
  
-# genetic algorithm
-def genetic_algorithm(objective, selection_alg, bounds, n_bits, target, n_pop, r_cross, r_mut):
-	# number of generations needed to find the answer
+def genetic_algorithm(objective, selection_alg, bounds, target, n_pop, r_cross, r_mut):
 	n_iter = 0
-	# history of best scores
 	scores_history = list()
-	# initial population of random bitstring
-	pop = [randint(0, 2, n_bits*len(bounds)).tolist() for _ in range(n_pop)]
-	# keep track of best solution
+	pop = [[randint(b[0], b[1]) for b in bounds] for _ in range(n_pop)]
 	best = pop[0]
-	best_eval = objective(decode(bounds, n_bits, pop[0]))
-	# enumerate generations
-	while best_eval < target and n_iter < n_iter_max:
+	best_score = objective(pop[0])
+	while best_score < target and n_iter < n_iter_max:
 		n_iter += 1
-		# decode population
-		decoded = [decode(bounds, n_bits, p) for p in pop]
-		# evaluate all candidates in the population
-		scores = [objective(d) for d in decoded]
-		# check for new best solution
-		scores_best = max(scores)
-		scores_history.append(scores_best)
-		if scores_best > best_eval:
-			i = scores.index(scores_best)
-			best, best_eval = pop[i], scores[i]
-		# select parents
-		selected = [selection_alg(pop, scores) for _ in range(n_pop)]
-		# create the next generation
-		children = list()
+		scores = [objective(d) for d in pop]
+		generation_best_score = max(scores)
+		if generation_best_score > best_score:
+			i = scores.index(generation_best_score)
+			best, best_score = pop[i], scores[i]
+		scores_history.append(generation_best_score)
 		for i in range(0, n_pop, 2):
-			# get selected parents in pairs
-			p1, p2 = selected[i], selected[i+1]
-			# crossover and mutation
-			for c in crossover(p1, p2, r_cross):
-				# mutation
-				mutation(c, r_mut)
-				# store for next generation
-				children.append(c)
-		# replace population
-		pop = children
-	best_decoded = decode(bounds, n_bits, best)
-	return [best_decoded, best_eval, scores_history]
+			p1, p2 = selection_alg(pop, scores), selection_alg(pop, scores)
+			c1, c2 = crossover(p1, p2, r_cross)
+			mutation(c1, r_mut, bounds)
+			mutation(c2, r_mut, bounds)
+			pop[i], pop[i+1] = c1, c2
+	return [best, best_score, scores_history]
 
-# perform the genetic algorithm search
 def main(selection_alg_name, n_pop, r_cross, r_mut):
-	r_mut /= float(n_bits) * len(bounds)
+	r_mut /= len(bounds)
 	selection_alg = tournament_selection if selection_alg_name == 'tournament' else roulette_selection
-	results = list()
-	for _ in range(n_simulations):
-		result = genetic_algorithm(simulate, selection_alg, bounds, n_bits, target, n_pop, r_cross, r_mut)
-		results.append(result)
-	return results
+	return [genetic_algorithm(simulate, selection_alg, bounds, target, n_pop, r_cross, r_mut) for _ in range(n_simulations)]
