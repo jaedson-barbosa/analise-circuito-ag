@@ -34,7 +34,7 @@
 
 \hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
 
-\title{Projeto de circuitos elétricos usando algoritmo genético}
+\title{Projeto de circuitos elétricos usando estratégias evolutivas}
 \author{Jaedson Barbosa Serafim}
 \date{\today}
 
@@ -47,7 +47,7 @@
 \clearpage
 \section{Introdução}
 
-Neste trabalho foi feito o cálculo dos valores de resistências para a máxima transferência de energia para o resistor $R_L$ no circuito \ref{fig:circuito} usando algoritmo genético.
+Neste trabalho foi feito o cálculo dos valores de resistências para a máxima transferência de energia para o resistor $R_L$ no circuito \ref{fig:circuito} usando estratégias evolutivas.
 
 \begin{figure}
     \centering
@@ -84,7 +84,7 @@ A potência dissipada pelo resistor $R_L$ no circuito equivalente \ref{fig:circu
     P_{max} = \frac{V_{in}^2}{R_L}
 \end{equation}
 
-Substituindo $V_{in}$ por $10V$ e $R_L$ por $50\Omega$ na equação \ref{eq:formula_simplificada} chegamos à máxima potência teórica para  resistência $R_L$ no circuito \ref{fig:circuito}:
+Substituindo $V_{in}$ por $10V$ e $R_L$ por $50\Omega$ na equação \ref{eq:formula_simplificada} chega-se à máxima potência teórica para  resistência $R_L$ no circuito \ref{fig:circuito}:
 
 \begin{equation}
     \label{eq:potencia_teorica}
@@ -92,8 +92,6 @@ Substituindo $V_{in}$ por $10V$ e $R_L$ por $50\Omega$ na equação \ref{eq:form
 \end{equation}
 
 Nessa simplificação da figura \ref{fig:circuito-eq}, como não há outros elementos resistivos no circuito, toda a potência fornecida pela fonte é entregue à resistência, ou seja, o rendimento do circuito é de 100\%.
-
-Porém, e se não soubéssemos como fazer tais contas, e se sequer soubéssemos que circuito é esse? Nesse caso poderia ser feita essa busca pelos valores de $R_1$ e $R_2$ usando algoritmos genéticos e esse é o objetivo deste trabalho: projetar elementos de um circuito para atender a uma especificação.
 
 \section{Função de rendimento}
 \label{cap:equacionament}
@@ -164,44 +162,26 @@ A figura \ref{fig:ef} demonstra que não existem máximos locais na função ava
 
 As figuras \ref{fig:efr1} e \ref{fig:efr2} foram plotadas com o eixo \textit{X} em escala logarítmica e assim a curva exibida tornou-se "legível", comprovando que a melhor forma de buscar os melhores valores de $R_1$ e $R_2$ é analisando em potências de 10.
 
-Em relação à quantidade de bits, foi adotado apenas 8 bits e sua escolha foi puramente arbitrária, ela ocorreu devido a 1 byte ter 8 bits e assim, caso este problema estivesse sendo desenvolvido em alguma linguagem com tipagem estática poderia ser usado um número de tipo char (para C) ou u8 (para Rust).
-
-Caso 8 bits pareçam pouco, vale mencionar que as figuras \ref{fig:efr1} e \ref{fig:efr2} foram geradas usando apenas os pontos representáveis por 8 bits, ou seja, usando apenas 255 pontos, como pode ser visto no código \ref{code:preanalise}.
-
 \section{Função de \textit{fitness}}
 
 \lstinputlisting[label=code:simulacao, caption={Simulação do circuito usando PySpice.}]{simulation.py}
 
 Muitas vezes é necessário usar ferramentas externas para a solução de um problema e aqui não é diferente, por isso a biblioteca PySpice é importada na primeira linha do código \ref{code:simulacao}, para simular o circuito e assim obtermos o valor da tensão $V_1$, usada para calcular as potências e assim conseguirmos o rendimento do circuito. "Por baixo dos panos", o que esta biblioteca faz é passar os parâmetros para outro programa, o Ngspice, e interpreta suas respostas.
 
-\section{Algoritmo genético}
-
-\subsection{Implementação}
+\section{Estratégias evolutivas}
 
 \lstinputlisting[label=code:ag, caption={Algoritmo genético com codificação binária.}]{index.py}
 
-O algoritmo genético desenvolvido neste trabalho é na verdade um aprimoramento do criado por \citeonline{brownlee_simple_2021}, que embora funcionasse razoavelmente bem, não atendia a todas as solicitações deste projeto. Seguindo a ordem cronológica do projeto, as principais melhorias implementadas estão logo abaixo descritas.
-
-\begin{enumerate}
-    \item Correção da variável \textit{largest} da função \textit{decode} pois, para uma quantidade de $n$ bits, o maior valor possível não é $2^n$, mas sim $2^n-1$.
-    \item Adicionada seleção pelo método da roleta, que pode ser escolhida passando-a como sendo o parâmetro \textit{selection\_alg} da função \textit{genetic\_algorithm}, tarefa desempenhada pela função \textit{main}, que a escolhe caso tenha sido chamada com seu parâmetro \textit{selection\_alg\_name} igual a \textit{roulette}\footnote{Na verdade, qualquer valor passado diferente de \textit{tournament} acarretará no uso da seleção pelo método da roleta, pois não foi implementada nenhuma lógica de validação de parâmetros}.
-    \item Adicionado histórico de melhor \textit{fitness} de cada geração.
-    \item Substituída quantidade fixa de gerações por comparação de \textit{fitness} com valor alvo, ou seja, ao invés de sempre executar a mesma quantidade de gerações, agora o algoritmo é interrompido tão logo a função de \textit{fitness} de qualquer indivíduo da população retorne um valor igual ou maior ao alvo definido anteriormente.
-    \item Corrigido erro com a variável \textit{best} na função \textit{genetic\_algorithm} que ocorria quando o primeiro indivíduo da população inicial atendia ao critério de parada, pois seu valor inicial era igual a 0, ou seja, de tipo inteiro, enquanto a função de decodificação na penúltima linha da função esperava um vetor de bits. A solução foi simples, bastou substituir o 0 pelo primeiro indivíduo da população. Cabe ressaltar que este erro só ocorria por causa da alteração do critério de parada.
-    \item Adicionado novo critério de parada: o número de iterações agora precisa ser inferior a um valor limite. Esse critério é importante pois quando são feitos testes com taxa de mutação igual a zero é possível que o algoritmo genético jamais chegue a uma solução, daí a razão de fazer essa limitação.
-\end{enumerate}
-
-\subsection{Especificações}
+O algoritmo usado neste trabalho é na verdade um aprimoramento do criado por \citeonline{brownlee_simple_2021}, que embora funcionasse razoavelmente bem, não atendia a todas as solicitações deste projeto.
 
 Esse código tem implementada a forma mais simples de algoritmo genético, sempre priorizando a aleatoriedade do processo e a simplicidade do algoritmo, assim alguns parâmetros são fixos em todos as execuções deste algoritmo a partir da função \textit{main}, são eles:
 
 \begin{itemize}
     \item intervalo de valores (\textit{r\_range}) igual a $\left[-2,5\right]$;
     \item alvo (\textit{target}) igual a $0,99$, ou seja, 99\% da energia fornecida pela fonte é dissipada na resistência $R_L$;
-    \item codificação binária da população usando 8 bits para representar cada variável em análise, totalizando 16 bits por indivíduo dado que são 2 variáveis;
-    \item simulação limitada a 25 iterações;
-    \item 5 simulações por chamada da função \textit{main}, garantindo resultados mais precisos; e
-    \item taxa de mutação dividida pela quantidade de bits de cada indivíduo, assim o valor enviado à função é referente à probabilidade de um indivíduo ter uma mutação em algum bit.
+    \item simulação limitada a 50 iterações;
+    \item 2 simulações por chamada da função \textit{main}, garantindo resultados mais precisos; e
+    \item taxa de mutação dividida pela quantidade de variáveis de cada indivíduo, assim o valor enviado à função é referente à probabilidade de um indivíduo ter uma mutação em alguma de suas características.
 \end{itemize}
 
 \begin{quoting}[rightmargin=0cm,leftmargin=4cm]
@@ -222,7 +202,7 @@ Resumidamente, o código \ref{code:final} chama a função \textit{main} com 5 d
 
 \section{Resultados}
 
-Com apenas 2 minutos de processamento foi possível chegar aos resultados que serão discutidos neste capítulo. Começamos com  a figura \ref{fig:fitgeral}, ela mostra o nível extremo de aleatoriedade deste algoritmo e sua incrível capacidade de quase sempre convergir ao ponto correto em poucas iterações. As poucas população que não o fizeram, só não conseguiram por causa do limite imposto de apenas 25 iterações, mas é interessante notar que todas estavam muito próximas de chegar ao resultado final.
+Com apenas 2 minutos de processamento foi possível chegar aos resultados que serão discutidos neste capítulo. Começando com  a figura \ref{fig:fitgeral}, ela mostra o nível extremo de aleatoriedade deste algoritmo e sua incrível capacidade de quase sempre convergir ao ponto correto em poucas iterações. As poucas população que não o fizeram, só não conseguiram por causa do limite imposto de apenas 25 iterações, mas é interessante notar que todas estavam muito próximas de chegar ao resultado final.
 
 \begin{figure}
     \centering
@@ -234,13 +214,13 @@ Com apenas 2 minutos de processamento foi possível chegar aos resultados que se
 A quantidade de simulações é igual ao produtório do número de:
 
 \begin{itemize}
-    \item simulações para cada chamada da função \textit{main}: 5;
+    \item simulações para cada chamada da função \textit{main}: 2;
     \item taxas de mutação: 4, são elas: 50\%, 100\%, 150\%, 200\% por indivíduo ou respectivamente 3,125\%, 6,25\%, 9,375\% e 12,5\% por bit;
     \item taxas de cruzamento: 5, são elas: 60\%, 70\%, 80\%, 90\% e 100\%; e
     \item conjuntos de teste: 4, são eles: população de 4 indivíduos com seleção de roleta, população de 4 indivíduos com seleção de torneio, população de 8 indivíduos com seleção de roleta e população de 8 indivíduos com seleção de torneio.
 \end{itemize}
 
-Daí vem a quantidade de 400 simulações, das quais 389 convergiram, ou seja, é uma taxa de sucesso de 97,25\%, mesmo com a extrema limitação de apenas 25 gerações.
+Daí vem a quantidade de 160 simulações, das quais 158 convergiram, ou seja, é uma taxa de sucesso de 98,75\%, mesmo com a limitação de apenas 50 gerações.
 
 \begin{figure}
     \centering
@@ -256,28 +236,13 @@ Daí vem a quantidade de 400 simulações, das quais 389 convergiram, ou seja, �
     \label{fig:min}
 \end{figure}
 
-\begin{figure}
-    \centering
-    \includegraphics{fig/mean_colors.png}
-    \caption{Quantidade média de gerações para convergir em cada uma dos 4 diferentes conjuntos de teste.}
-    \label{fig:mean}
-\end{figure}
-
-Na figura \ref{fig:max} é possível visualizarmos o pior resultado das 5 simulações para diferentes tamanhos de população, taxas de cruzamento e mutação com cada um dos métodos de seleção. Dele podemos extrair algumas conclusões:
-
-\begin{itemize}
-    \item a mais óbvia é que uma maior população permite uma convergência mais rápida, afinal existem mais possibilidades de encontrar uma solução se a quantidade de testes é maior;
-    \item taxas de cruzamento mais baixas levaram à convergência mais rápida na população de 8 indivíduos enquanto ocorre o contrário na população de 4 indivíduos, provavelmente devido à eliminação de indivíduos com bom \textit{fitting}; e
-    \item no geral, ambas formas de seleção produzem resultados consistentes, porém a vantagem de performance da seleção por torneio é um bom ponto a se levar em consideração na hora de escolher entre um e outro.
-\end{itemize}
-
 Na figura \ref{fig:min} é possível tirar a conclusão de que com qualquer um dos parâmetros adotados é possível chegar a um resultado satisfatório dependendo da sorte de ter uma boa população inicial.
 
-Por fim, na figura \ref{fig:mean} é possível confirmar o que a figura \ref{fig:fitgeral} já dava indícios: no geral foram necessários menos de 5 iterações para se chegar ao resultado esperado, ou seja, quase sempre com menos de 30 simulações foi possível chegar a um resultado que necessitaria milhares de simulações, mais de 65 mil, caso todos os valores possíveis fossem ser analisados por meio da força bruta, ou seja, uma redução média de 99,95\% na quantidade de simulações necessárias para chegar à solução ótima.
+Na figura \ref{fig:max} é possível visualizarmos o pior resultado das 2 simulações para diferentes tamanhos de população, taxas de cruzamento e mutação com cada um dos métodos de seleção. Ela confirma o que a figura \ref{fig:fitgeral} já dava indícios: no geral foram necessários menos de 5 iterações para se chegar ao resultado esperado, ou seja, quase sempre com poucas simulações foi possível chegar a um resultado que necessitaria milhares de simulações caso todos os valores possíveis fossem ser analisados por meio da força bruta.
 
 \section{Conclusão}
 
-Embora o problema a ser resolvido tenha sido relativamente simples, com ele foi possível aprender um pouco mais sobre como algoritmos genéticos podem ser usados para resolver problemas de engenharia de forma eficiente.
+Embora o problema a ser resolvido tenha sido relativamente simples, com ele foi possível aprender um pouco mais sobre como esse tipo de algoritmo pode ser usado para resolver problemas de engenharia de forma eficiente.
 
 \clearpage
 \bibliography{citations}
